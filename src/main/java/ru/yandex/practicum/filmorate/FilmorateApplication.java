@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class FilmorateApplication {
     public static void main(String[] args) {
-        log.trace("Starting {}", FilmorateApplication.class.getSimpleName());
         SpringApplication.run(FilmorateApplication.class, args);
     }
 

@@ -20,28 +20,32 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
 
+    private long idGenerator = 0;
     private final Map<Long, Film> films = new HashMap<>();
 
     @GetMapping
     public Collection<Film> getFilms() {
+        log.info("Getting all films");
         return films.values();
     }
 
     @PostMapping
     public Film createFilm(@Valid @RequestBody Film film) {
+        log.info("Adding new film");
         if (films.containsKey(film.getId())) {
             log.error("id {} already in use", (film.getId()));
             throw new DuplicatedDataException("Film with id " + film.getId() + " already exists");
         }
-        film.setId(getLastId());
+        film.setId(++idGenerator);
         films.put(film.getId(), film);
 
-        log.info("The new film has been added");
+        log.info("The new film {} has been added", film.getName());
         return film;
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film newFilm) {
+        log.info("Updating film");
         Long newFilmId = newFilm.getId();
         if (newFilmId == null) {
             log.error("Did`t find film for updating because you send film with id = null");
@@ -58,17 +62,8 @@ public class FilmController {
         oldFilm.setDuration(newFilm.getDuration());
         oldFilm.setReleaseDate(newFilm.getReleaseDate());
 
-        log.info("The film has been updated");
+        log.info("The film {} has been updated", oldFilm.getName());
         return oldFilm;
-    }
-
-    private Long getLastId() {
-        long lastId = films.values().stream()
-            .mapToLong(Film::getId)
-            .max()
-            .orElse(0);
-        log.trace("Generating new id");
-        return ++lastId;
     }
 
 }
