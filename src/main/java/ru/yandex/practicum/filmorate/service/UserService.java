@@ -66,6 +66,7 @@ public class UserService {
         User removedFriend = getUser("Friend", friendId);
 
         Set<Long> userFriends = user.getFriends();
+        Set<Long> removedFriendFriends = removedFriend.getFriends();
 
         if (userFriends.isEmpty()) {
             log.info("No friends");
@@ -77,7 +78,10 @@ public class UserService {
             throw new NotFoundException(String.format("This friend not found in %s `s friend list", user.getName()));
         }
 
+        removedFriendFriends.remove(userId);
         user.setFriends(userFriends);
+        removedFriend.setFriends(removedFriendFriends);
+
         return removedFriend;
     }
 
