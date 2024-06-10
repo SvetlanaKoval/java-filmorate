@@ -7,7 +7,8 @@ import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.EmptyListException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.storage.Storage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -16,34 +17,36 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class UserService {
-    private final UserStorage userStorage;
+    private final Storage<User> userStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(InMemoryUserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
     public Collection<User> getAllUsers() {
-        return userStorage.getUsers();
+        return userStorage.getAll();
     }
 
     public User createUser(User user) {
-        return userStorage.createUser(user);
+        return userStorage.create(user);
     }
 
     public User updateUser(User newUser) {
-        return userStorage.updateUser(newUser);
+        return userStorage.update(newUser);
     }
 
     public User deleteUser(User deletedUser) {
-        return userStorage.deleteUser(deletedUser);
+        return userStorage.delete(deletedUser);
+    }
+
+    public User getUser(Long id) {
+        return userStorage.getById(id);
     }
 
     public User addFriend(Long userId, Long friendId) {
-        log.info("Adding new friend");
-
-        User user = getUser("User", userId);
-        User friend = getUser("Friend", friendId);
+        User user = getUser(userId);
+        User friend = getUser(friendId);
 
         Set<Long> userFriends = user.getFriends();
         if (!userFriends.add(friendId)) {
@@ -56,14 +59,12 @@ public class UserService {
         Set<Long> friendFriends = friend.getFriends();
         friendFriends.add(userId);
         friend.setFriends(friendFriends);
-        return friend;
+        return user;
     }
 
     public User removeFriend(Long userId, Long friendId) {
-        log.info("Removing friend");
-
-        User user = getUser("User", userId);
-        User removedFriend = getUser("Friend", friendId);
+        User user = getUser(userId);
+        User removedFriend = getUser(friendId);
 
         Set<Long> userFriends = user.getFriends();
         Set<Long> removedFriendFriends = removedFriend.getFriends();
@@ -82,30 +83,20 @@ public class UserService {
         user.setFriends(userFriends);
         removedFriend.setFriends(removedFriendFriends);
 
-        return removedFriend;
+        return user;
     }
 
     public List<User> getAllFriends(Long userId) {
-        User user = getUser("User", userId);
-        log.info("Getting all friends of {}", user.getName());
-
+        User user = getUser(userId);
         return getUsersFromIds(user.getFriends());
     }
 
     public List<User> getCommonFriends(Long userId, Long otherId) {
-        User user = getUser("User", userId);
-        User otherUser = getUser("Another user", otherId);
-        log.info("Getting common friends of {} and {}", user.getName(), otherUser.getName());
+        User user = getUser(userId);
+        User otherUser = getUser(otherId);
 
         Set<Long> commonFriends = findIntersectionUsersId(user.getFriends(), otherUser.getFriends());
         return getUsersFromIds(commonFriends);
-    }
-
-    User getUser(String role, Long id) {
-        return userStorage.getUsers().stream()
-            .filter(user -> user.getId().equals(id))
-            .findFirst().orElseThrow(() ->
-                new NotFoundException(String.format("%s with id - %d not found", role, id)));
     }
 
     private Set<Long> findIntersectionUsersId(Set<Long> collection1, Set<Long> collection2) {
@@ -116,7 +107,7 @@ public class UserService {
     }
 
     private List<User> getUsersFromIds(Set<Long> ids) {
-        return userStorage.getUsers().stream()
+        return userStorage.getAll().stream()
             .filter(user -> ids.stream()
                 .anyMatch(friend -> friend.equals(user.getId())))
             .collect(Collectors.toList());

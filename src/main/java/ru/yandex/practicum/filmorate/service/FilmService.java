@@ -8,8 +8,11 @@ import ru.yandex.practicum.filmorate.exception.EmptyListException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.Storage;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,35 +20,40 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FilmService {
-    private final FilmStorage filmStorage;
-    private final UserService userService;
+    private final Storage<Film> filmStorage;
+    private final Storage<User> userStorage;
+
+    public final Comparator<Film> FILM_LIKES_COMPARATOR = (film1, film2) -> Integer.compare(film2.getLikes().size(), film1.getLikes().size());
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
+    public FilmService(InMemoryFilmStorage filmStorage, InMemoryUserStorage userStorage) {
         this.filmStorage = filmStorage;
-        this.userService = userService;
+        this.userStorage = userStorage;
     }
 
     public Collection<Film> getFilms() {
-        return filmStorage.getFilms();
+        return filmStorage.getAll();
     }
 
     public Film createFilm(Film film) {
-        return filmStorage.createFilm(film);
+        return filmStorage.create(film);
     }
 
     public Film updateFilm(Film newFilm) {
-        return filmStorage.updateFilm(newFilm);
+        return filmStorage.update(newFilm);
     }
 
     public Film deleteFilm(Film deletedFilm) {
-        return filmStorage.deleteFilm(deletedFilm);
+        return filmStorage.delete(deletedFilm);
+    }
+
+    public Film getFilm(Long filmId) {
+        return filmStorage.getById(filmId);
     }
 
     public Film addLike(Long filmId, Long userId) {
-        log.info("Adding like");
         Film film = getFilm(filmId);
-        User user = userService.getUser("User", userId);
+        User user = userStorage.getById(userId);
 
         Set<Long> filmLikes = film.getLikes();
         if (!filmLikes.add(userId)) {
@@ -63,9 +71,8 @@ public class FilmService {
     }
 
     public Film removeLike(Long filmId, Long userId) {
-        log.info("Removing like");
         Film film = getFilm(filmId);
-        User user = userService.getUser("User", userId);
+        User user = userStorage.getById(userId);
 
         Set<Long> filmLikes = film.getLikes();
         if (filmLikes.isEmpty()) {
@@ -88,18 +95,9 @@ public class FilmService {
     }
 
     public List<Film> getPopularFilms(int limit) {
-        log.info("Most popular films");
-        return filmStorage.getFilms().stream()
-            .sorted((film1, film2) -> Integer.compare(film2.getLikes().size(), film1.getLikes().size()))
+        return filmStorage.getAll().stream()
+            .sorted(FILM_LIKES_COMPARATOR)
             .limit(limit)
             .collect(Collectors.toList());
-    }
-
-    private Film getFilm(Long filmId) {
-        return filmStorage.getFilms().stream()
-            .filter(film -> film.getId().equals(filmId))
-            .findFirst().orElseThrow(() ->
-                new NotFoundException(String.format("Film with id - %d not found", filmId))
-            );
     }
 }

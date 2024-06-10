@@ -6,26 +6,21 @@ import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.Storage;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Component
-public class InMemoryUserStorage implements UserStorage {
-    private long idGenerator = 0;
-    private final Map<Long, User> users = new HashMap<>();
+public class InMemoryUserStorage extends Storage<User> {
 
     @Override
-    public Collection<User> getUsers() {
-        log.info("Getting all users");
-        return users.values();
+    public Collection<User> getAll() {
+        return storage.values();
     }
 
     @Override
-    public User createUser(User user) {
-        log.info("Adding new user");
-        if (users.containsKey(user.getId())) {
+    public User create(User user) {
+        if (storage.containsKey(user.getId())) {
             log.error("id {} already in use", (user.getId()));
             throw new DuplicatedDataException("User with id " + user.getId() + " already exists");
         }
@@ -35,15 +30,14 @@ public class InMemoryUserStorage implements UserStorage {
         //Checking email, if email of user is already exists
         userEmailValidation(user.getEmail());
         user.setId(++idGenerator);
-        users.put(user.getId(), user);
+        storage.put(user.getId(), user);
 
         log.info("The new user {} has been added", user.getName());
         return user;
     }
 
     @Override
-    public User updateUser(User newUser) {
-        log.info("Updating user");
+    public User update(User newUser) {
         Long newUserId = newUser.getId();
         if (newUserId == null) {
             log.error("Did`t find user for updating because you send user with id = null");
@@ -53,7 +47,7 @@ public class InMemoryUserStorage implements UserStorage {
         //Checking name, if null - name = login
         userNameValidation(newUser);
 
-        User oldUser = users.get(newUserId);
+        User oldUser = storage.get(newUserId);
         if (oldUser == null) {
             log.error("Did`n find user with id {}", newUserId);
             throw new NotFoundException("Can`t find user with id " + newUserId);
@@ -72,19 +66,26 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User deleteUser(User user) {
-        log.info("Deleting user");
+    public User delete(User user) {
         Long deletedUserId = user.getId();
-        User deletedUser = users.get(deletedUserId);
+        User deletedUser = storage.get(deletedUserId);
         if (deletedUser == null) {
             log.error("Did`n find user with id {}", deletedUserId);
             throw new NotFoundException("Can`t find user with id " + deletedUserId);
         }
 
-        users.remove(deletedUserId);
+        storage.remove(deletedUserId);
 
         log.info("The user {} has been deleted", deletedUser.getName());
         return deletedUser;
+    }
+
+    @Override
+    public User getById(Long id) {
+        return storage.values().stream()
+            .filter(user -> user.getId().equals(id))
+            .findFirst().orElseThrow(() ->
+                new NotFoundException(String.format("User with id - %d not found", id)));
     }
 
     private void userNameValidation(User user) {
@@ -94,7 +95,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     private void userEmailValidation(String newEmail) {
-        users.values().stream()
+        storage.values().stream()
             .map(User::getEmail)
             .filter(email -> email.equals(newEmail))
             .findFirst()
