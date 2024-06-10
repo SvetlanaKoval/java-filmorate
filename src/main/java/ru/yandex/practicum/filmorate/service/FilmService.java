@@ -23,7 +23,7 @@ public class FilmService {
     private final Storage<Film> filmStorage;
     private final Storage<User> userStorage;
 
-    private final Comparator<Film> COMPARATOR = (film1, film2) -> Integer.compare(film2.getLikes().size(), film1.getLikes().size());
+    private static final Comparator<Film> FILM_LIKES_COMPARATOR = (film1, film2) -> Integer.compare(film2.getLikes().size(), film1.getLikes().size());
 
     @Autowired
     public FilmService(InMemoryFilmStorage filmStorage, InMemoryUserStorage userStorage) {
@@ -97,7 +97,7 @@ public class FilmService {
     public List<Film> getPopularFilms(int limit) {
 
         return filmStorage.getAll().stream()
-            .sorted(COMPARATOR)
+            .sorted(FILM_LIKES_COMPARATOR)
             .limit(limit)
             .collect(Collectors.toList());
     }
