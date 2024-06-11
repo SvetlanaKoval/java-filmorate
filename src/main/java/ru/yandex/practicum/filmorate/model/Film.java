@@ -9,6 +9,8 @@ import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Film.
@@ -34,6 +36,8 @@ public class Film {
 
     @Positive(message = "Film`s duration should be positive")
     private Integer duration;
+
+    private Set<Long> likes = new HashSet<>();
 
     @AssertTrue(message = "Release date should be after 28.12.1895")
     private boolean isRightReleaseDate() {
