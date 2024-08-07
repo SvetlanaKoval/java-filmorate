@@ -6,11 +6,13 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.EmptyListException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.FriendsStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.Storage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,16 +50,16 @@ public class UserService {
         User user = getUser(userId);
         User friend = getUser(friendId);
 
-        Set<Long> userFriends = user.getFriends();
-        if (!userFriends.add(friendId)) {
+        Map<Long, FriendsStatus> userFriends = user.getFriends();
+        if (userFriends.containsKey(friendId)) {
             log.error("Friend with name - {} was added earlier", friend.getName());
             throw new DuplicatedDataException("This friend is already in your list");
         }
-
+        userFriends.put(friendId, FriendsStatus.UNCONFIRMED);
         user.setFriends(userFriends);
 
-        Set<Long> friendFriends = friend.getFriends();
-        friendFriends.add(userId);
+        Map<Long, FriendsStatus> friendFriends = friend.getFriends();
+        friendFriends.put(userId, FriendsStatus.UNCONFIRMED);
         friend.setFriends(friendFriends);
         return user;
     }
@@ -66,19 +68,19 @@ public class UserService {
         User user = getUser(userId);
         User removedFriend = getUser(friendId);
 
-        Set<Long> userFriends = user.getFriends();
-        Set<Long> removedFriendFriends = removedFriend.getFriends();
+        Map<Long, FriendsStatus> userFriends = user.getFriends();
+        Map<Long, FriendsStatus> removedFriendFriends = removedFriend.getFriends();
 
         if (userFriends.isEmpty()) {
             log.info("No friends");
             throw new EmptyListException(String.format("User %s does`t have any friends", user.getName()));
         }
 
-        if (!userFriends.remove(friendId)) {
+        if (!userFriends.containsKey(friendId)) {
             log.error("Friend with name - {} did`t found in {}`s friends list", removedFriend.getName(), user.getName());
             throw new NotFoundException(String.format("This friend not found in %s `s friend list", user.getName()));
         }
-
+        userFriends.remove(friendId);
         removedFriendFriends.remove(userId);
         user.setFriends(userFriends);
         removedFriend.setFriends(removedFriendFriends);
@@ -88,14 +90,14 @@ public class UserService {
 
     public List<User> getAllFriends(Long userId) {
         User user = getUser(userId);
-        return getUsersFromIds(user.getFriends());
+        return getUsersFromIds(user.getFriends().keySet());
     }
 
     public List<User> getCommonFriends(Long userId, Long otherId) {
         User user = getUser(userId);
         User otherUser = getUser(otherId);
 
-        Set<Long> commonFriends = findIntersectionUsersId(user.getFriends(), otherUser.getFriends());
+        Set<Long> commonFriends = findIntersectionUsersId(user.getFriends().keySet(), otherUser.getFriends().keySet());
         return getUsersFromIds(commonFriends);
     }
 

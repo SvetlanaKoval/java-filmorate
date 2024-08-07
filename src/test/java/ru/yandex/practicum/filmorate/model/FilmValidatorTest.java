@@ -89,6 +89,8 @@ public class FilmValidatorTest extends ValidatorTest {
         film.setDescription("qtwqyjeewlrujkgfhb.a");
         film.setReleaseDate(LocalDate.of(1990, 1, 1));
         film.setDuration(120);
+        film.setRating(Rating.PG13);
+        film.setGenres(Set.of(Genre.DRAMA, Genre.COMEDY));
         return film;
     }
 }
