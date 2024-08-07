@@ -49,6 +49,9 @@ public class InMemoryFilmStorage extends Storage<Film> {
         oldFilm.setDescription(newFilm.getDescription());
         oldFilm.setDuration(newFilm.getDuration());
         oldFilm.setReleaseDate(newFilm.getReleaseDate());
+        oldFilm.setLikes(newFilm.getLikes());
+        oldFilm.setGenres(newFilm.getGenres());
+        oldFilm.setRating(newFilm.getRating());
 
         log.info("The film {} has been updated", oldFilm.getName());
         return oldFilm;

@@ -8,7 +8,9 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -30,7 +32,7 @@ public class User {
     @DateTimeFormat(pattern = "dd.MM.yyyy")
     private LocalDate birthday;
 
-    private Set<Long> friends = new HashSet<>();
+    private Map<Long, FriendsStatus> friends = new HashMap<>();
 
     private Set<Long> favouriteFilmsId = new HashSet<>();
 

@@ -39,9 +39,14 @@ public class Film {
 
     private Set<Long> likes = new HashSet<>();
 
+    //    @NotEmpty(message = "Film should have at last one genre")
+    private Set<Genre> genres = new HashSet<>();
+
+    //    @NotNull(message = "Film should have Motion Picture Association rating")
+    private Rating rating;
+
     @AssertTrue(message = "Release date should be after 28.12.1895")
     private boolean isRightReleaseDate() {
         return this.releaseDate.isAfter(MIN_DATE_RELEASE);
     }
-
 }
