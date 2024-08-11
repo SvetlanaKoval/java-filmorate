@@ -1,9 +1,7 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.dto.film;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -11,17 +9,11 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
-import java.util.Set;
 
-/**
- * Film.
- */
 @Data
-public class Film {
+public class NewFilmRequest {
 
     private static final LocalDate MIN_DATE_RELEASE = LocalDate.of(1895, Month.DECEMBER, 28);
-
-    private Long id;
 
     @NotBlank(message = "Film`s name cannot be null")
     private String name;
@@ -35,16 +27,13 @@ public class Film {
     @Positive(message = "Film`s duration should be positive")
     private Integer duration;
 
-    private Set<Long> likes = Set.of();
+    private MpaDTO mpa;
 
-    @NotEmpty(message = "Film should have at last one genre")
-    private List<Genre> genres = List.of();
-
-    @NotNull(message = "Film should have Motion Picture Association rating")
-    private Rating rating;
+    private List<GenreDTO> genres = List.of();
 
     @AssertTrue(message = "Release date should be after 28.12.1895")
     private boolean isRightReleaseDate() {
         return this.releaseDate.isAfter(MIN_DATE_RELEASE);
     }
+
 }

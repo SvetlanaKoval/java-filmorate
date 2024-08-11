@@ -6,12 +6,14 @@ import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.Storage;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Component
-public class InMemoryFilmStorage extends Storage<Film> {
+public class InMemoryFilmStorage implements FilmStorage {
+    protected final Map<Long, Film> storage = new HashMap<>();
 
     @Override
     public Collection<Film> getAll() {
@@ -25,7 +27,7 @@ public class InMemoryFilmStorage extends Storage<Film> {
             throw new DuplicatedDataException("Film with id " + film.getId() + " already exists");
         }
 
-        film.setId(++idGenerator);
+        film.setId(generateMaxId() + 1);
         storage.put(film.getId(), film);
 
         log.info("The new film {} has been added", film.getName());
@@ -80,4 +82,11 @@ public class InMemoryFilmStorage extends Storage<Film> {
                 new NotFoundException(String.format("Film with id - %d not found", id))
             );
     }
+
+    private Long generateMaxId() {
+        return (storage.keySet().stream()
+            .max(Long::compare)
+            .orElse(0L));
+    }
+
 }

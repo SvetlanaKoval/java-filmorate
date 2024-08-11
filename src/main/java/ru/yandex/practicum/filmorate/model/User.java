@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
+import ru.yandex.practicum.filmorate.enums.FriendsStatus;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,7 +29,6 @@ public class User {
     private String name;
 
     @PastOrPresent(message = "Your birthday should be in past")
-    @DateTimeFormat(pattern = "dd.MM.yyyy")
     private LocalDate birthday;
 
     private Map<Long, FriendsStatus> friends = new HashMap<>();

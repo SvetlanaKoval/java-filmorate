@@ -1,104 +1,80 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.EmptyListException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.dao.FilmRepository;
+import ru.yandex.practicum.filmorate.dao.GenreRepository;
+import ru.yandex.practicum.filmorate.dao.RatingRepository;
+import ru.yandex.practicum.filmorate.dto.film.FilmDTO;
+import ru.yandex.practicum.filmorate.dto.film.NewFilmRequest;
+import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.Storage;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
-import java.util.Collection;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FilmService {
-    private final Storage<Film> filmStorage;
-    private final Storage<User> userStorage;
+
+    private final FilmRepository filmRepository;
+    private final RatingRepository ratingRepository;
+    private final GenreRepository genreRepository;
 
     private static final Comparator<Film> FILM_LIKES_COMPARATOR = (film1, film2) -> Integer.compare(film2.getLikes().size(), film1.getLikes().size());
 
-    @Autowired
-    public FilmService(InMemoryFilmStorage filmStorage, InMemoryUserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
+    public List<FilmDTO> getAllFilms() {
+        return filmRepository.findAll().stream()
+            .map(FilmMapper::toDTO)
+            .collect(Collectors.toList());
     }
 
-    public Collection<Film> getFilms() {
-        return filmStorage.getAll();
+    public FilmDTO getById(Long filmId) {
+        Film filmById = filmRepository.getById(filmId);
+        return FilmMapper.toDTO(filmById);
     }
 
-    public Film createFilm(Film film) {
-        return filmStorage.create(film);
+    public FilmDTO createFilm(NewFilmRequest request) {
+        Rating rating = ratingRepository.getById(request.getMpa().getId());
+        List<Genre> genres = request.getGenres().stream()
+            .map(genre -> genreRepository.findById(genre.getId()))
+            .map(genre -> genre.orElseThrow(() -> new ValidateException("Жанр не найден")))
+            .toList();
+        Film film = FilmMapper.toFilm(request, rating, genres);
+        Film save = filmRepository.save(film);
+
+        return FilmMapper.toDTO(save);
     }
 
-    public Film updateFilm(Film newFilm) {
-        return filmStorage.update(newFilm);
+    public FilmDTO updateFilm(UpdateFilmRequest request) {
+        Film film = filmRepository.getById(request.getId());
+        Rating rating = ratingRepository.getById(request.getMpa().getId());
+        List<Genre> genres = request.getGenres().stream()
+            .map(genre -> genreRepository.getById(genre.getId()))
+            .toList();
+
+        Film updatedFilm = FilmMapper.updateFilmFields(film, request, rating, genres);
+
+        filmRepository.update(updatedFilm);
+
+        return FilmMapper.toDTO(updatedFilm);
     }
 
-    public Film deleteFilm(Film deletedFilm) {
-        return filmStorage.delete(deletedFilm);
+    public boolean deleteFilm(Long id) {
+        return filmRepository.delete(id);
     }
 
-    public Film getFilm(Long filmId) {
-        return filmStorage.getById(filmId);
-    }
-
-    public Film addLike(Long filmId, Long userId) {
-        Film film = getFilm(filmId);
-        User user = userStorage.getById(userId);
-
-        Set<Long> filmLikes = film.getLikes();
-        if (!filmLikes.add(userId)) {
-            log.error("Like from user with id - {} was already added", userId);
-            throw new DuplicatedDataException("This like is already added");
-        }
-
-        Set<Long> favouriteFilmsId = user.getFavouriteFilmsId();
-        favouriteFilmsId.add(filmId);
-
-        film.setLikes(filmLikes);
-        user.setFavouriteFilmsId(favouriteFilmsId);
-
-        return film;
-    }
-
-    public Film removeLike(Long filmId, Long userId) {
-        Film film = getFilm(filmId);
-        User user = userStorage.getById(userId);
-
-        Set<Long> filmLikes = film.getLikes();
-        if (filmLikes.isEmpty()) {
-            log.info("No likes");
-            throw new EmptyListException(String.format("Film %s does`t have any likes", film.getName()));
-        }
-
-        if (!filmLikes.remove(userId)) {
-            log.error("Like from user with id - {} did`t found", userId);
-            throw new NotFoundException(String.format("Like from  user - %s not found", user.getName()));
-        }
-
-        Set<Long> favouriteFilmsId = user.getFavouriteFilmsId();
-        favouriteFilmsId.remove(filmId);
-
-        film.setLikes(filmLikes);
-        user.setFavouriteFilmsId(favouriteFilmsId);
-
-        return film;
-    }
-
-    public List<Film> getPopularFilms(int limit) {
-
-        return filmStorage.getAll().stream()
+    public List<FilmDTO> getPopularFilms(int limit) {
+        return filmRepository.findAll().stream()
             .sorted(FILM_LIKES_COMPARATOR)
             .limit(limit)
+            .map(FilmMapper::toDTO)
             .collect(Collectors.toList());
     }
 }

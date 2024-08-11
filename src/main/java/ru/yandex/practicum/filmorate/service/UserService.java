@@ -1,117 +1,90 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.UserRepository;
+import ru.yandex.practicum.filmorate.dto.user.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UserDTO;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.EmptyListException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.FriendsStatus;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.Storage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
-    private final Storage<User> userStorage;
 
-    @Autowired
-    public UserService(InMemoryUserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
+    private final UserRepository userRepository;
+    private final FriendsService friendsService;
+    private final FilmLikesService filmLikesService;
 
-    public Collection<User> getAllUsers() {
-        return userStorage.getAll();
-    }
-
-    public User createUser(User user) {
-        return userStorage.create(user);
-    }
-
-    public User updateUser(User newUser) {
-        return userStorage.update(newUser);
-    }
-
-    public User deleteUser(User deletedUser) {
-        return userStorage.delete(deletedUser);
-    }
-
-    public User getUser(Long id) {
-        return userStorage.getById(id);
-    }
-
-    public User addFriend(Long userId, Long friendId) {
-        User user = getUser(userId);
-        User friend = getUser(friendId);
-
-        Map<Long, FriendsStatus> userFriends = user.getFriends();
-        if (userFriends.containsKey(friendId)) {
-            log.error("Friend with name - {} was added earlier", friend.getName());
-            throw new DuplicatedDataException("This friend is already in your list");
-        }
-        userFriends.put(friendId, FriendsStatus.UNCONFIRMED);
-        user.setFriends(userFriends);
-
-        Map<Long, FriendsStatus> friendFriends = friend.getFriends();
-        friendFriends.put(userId, FriendsStatus.UNCONFIRMED);
-        friend.setFriends(friendFriends);
-        return user;
-    }
-
-    public User removeFriend(Long userId, Long friendId) {
-        User user = getUser(userId);
-        User removedFriend = getUser(friendId);
-
-        Map<Long, FriendsStatus> userFriends = user.getFriends();
-        Map<Long, FriendsStatus> removedFriendFriends = removedFriend.getFriends();
-
-        if (userFriends.isEmpty()) {
-            log.info("No friends");
-            throw new EmptyListException(String.format("User %s does`t have any friends", user.getName()));
-        }
-
-        if (!userFriends.containsKey(friendId)) {
-            log.error("Friend with name - {} did`t found in {}`s friends list", removedFriend.getName(), user.getName());
-            throw new NotFoundException(String.format("This friend not found in %s `s friend list", user.getName()));
-        }
-        userFriends.remove(friendId);
-        removedFriendFriends.remove(userId);
-        user.setFriends(userFriends);
-        removedFriend.setFriends(removedFriendFriends);
-
-        return user;
-    }
-
-    public List<User> getAllFriends(Long userId) {
-        User user = getUser(userId);
-        return getUsersFromIds(user.getFriends().keySet());
-    }
-
-    public List<User> getCommonFriends(Long userId, Long otherId) {
-        User user = getUser(userId);
-        User otherUser = getUser(otherId);
-
-        Set<Long> commonFriends = findIntersectionUsersId(user.getFriends().keySet(), otherUser.getFriends().keySet());
-        return getUsersFromIds(commonFriends);
-    }
-
-    private Set<Long> findIntersectionUsersId(Set<Long> collection1, Set<Long> collection2) {
-        return collection1.stream()
-            .filter(userId1 -> collection2.stream()
-                .anyMatch(userId2 -> userId2.equals(userId1)))
-            .collect(Collectors.toSet());
-    }
-
-    private List<User> getUsersFromIds(Set<Long> ids) {
-        return userStorage.getAll().stream()
-            .filter(user -> ids.stream()
-                .anyMatch(friend -> friend.equals(user.getId())))
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+            .peek(user -> {
+                user.setFriends(friendsService.getAllFriendsWithStatus(user.getId()));
+                user.setFavouriteFilmsId(filmLikesService.getAllByUserId(user.getId()));
+            })
+            .map(UserMapper::toDTO)
             .collect(Collectors.toList());
     }
+
+    public UserDTO createUser(NewUserRequest request) {
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new ValidateException("Имейл должен быть указан");
+        }
+
+        Optional<User> alreadyExistUser = userRepository.findByEmail(request.getEmail());
+
+        if (alreadyExistUser.isPresent()) {
+            throw new DuplicatedDataException("Этот имейл уже используется");
+        }
+
+        User user = UserMapper.toUser(request);
+
+        user = userRepository.save(user);
+
+        return UserMapper.toDTO(user);
+    }
+
+    public UserDTO updateUser(Long userId, UpdateUserRequest request) {
+        User updatedUser = userRepository.findById(userId)
+            .map(user -> UserMapper.updateUserFields(user, request))
+            .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        userRepository.update(updatedUser);
+
+        return UserMapper.toDTO(updatedUser);
+    }
+
+    public boolean deleteUser(Long id) {
+        friendsService.deleteAllFriendsByUser(id);
+        friendsService.deleteAllUsersByFriend(id);
+        filmLikesService.deleteAllLikesByUser(id);
+        return userRepository.delete(id);
+    }
+
+    public UserDTO getUserById(Long id) {
+        UserDTO userDto = userRepository.findById(id)
+            .map(UserMapper::toDTO)
+            .orElseThrow(() -> new NotFoundException(String.format("Пользователь  с ID: %d не найден", id)));
+        userDto.setFriends(friendsService.getAllFriendsWithStatus(id));
+        userDto.setFavouriteFilmsId(filmLikesService.getAllByUserId(id));
+
+        return userDto;
+    }
+
+    public List<User> getUsersByIds(Set<Long> ids) {
+        return ids.stream()
+            .map(userRepository::findById)
+            .map(Optional::orElseThrow)
+            .collect(Collectors.toList());
+    }
+
 }
