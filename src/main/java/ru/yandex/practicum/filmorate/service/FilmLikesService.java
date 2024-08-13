@@ -14,29 +14,35 @@ import java.util.stream.Collectors;
 public class FilmLikesService {
 
     private final FilmLikesRepository filmLikesRepository;
+    private final FilmService filmService;
+    private final UserService userService;
 
     public Set<Long> getAllByUserId(Long userId) {
+        userService.checkUserExists(userId);
         return filmLikesRepository.findAllByUserId(userId).stream()
             .map(FilmLikes::getFilmId)
             .collect(Collectors.toSet());
     }
 
-    public Set<Long> getAllByFilmId(Long userId) {
-        return filmLikesRepository.findAllByFilmId(userId).stream()
+    public Set<Long> getAllByFilmId(Long filmId) {
+        filmService.checkFilmExists(filmId);
+        return filmLikesRepository.findAllByFilmId(filmId).stream()
             .map(FilmLikes::getFilmId)
             .collect(Collectors.toSet());
     }
 
     public Long addFilmLike(Long userId, Long filmId) {
+        userService.checkUserExists(userId);
+        filmService.checkFilmExists(filmId);
+
         return filmLikesRepository.save(userId, filmId);
     }
 
     public boolean deleteFilmLike(Long userId, Long filmId) {
-        return filmLikesRepository.delete(userId, filmId);
-    }
+        userService.checkUserExists(userId);
+        filmService.checkFilmExists(filmId);
 
-    public boolean deleteAllLikesByUser(Long userId) {
-        return filmLikesRepository.deleteAllByUser(userId);
+        return filmLikesRepository.delete(userId, filmId);
     }
 
 }

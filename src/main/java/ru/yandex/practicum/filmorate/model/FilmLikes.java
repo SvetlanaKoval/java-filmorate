@@ -7,4 +7,5 @@ public class FilmLikes {
 
     private Long filmId;
     private Long userId;
+
 }

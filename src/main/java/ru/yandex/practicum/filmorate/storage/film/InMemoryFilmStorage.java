@@ -13,6 +13,7 @@ import java.util.Map;
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
+
     protected final Map<Long, Film> storage = new HashMap<>();
 
     @Override
@@ -51,7 +52,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         oldFilm.setDescription(newFilm.getDescription());
         oldFilm.setDuration(newFilm.getDuration());
         oldFilm.setReleaseDate(newFilm.getReleaseDate());
-        oldFilm.setLikes(newFilm.getLikes());
+        //        oldFilm.setLikes(newFilm.getLikes());
         oldFilm.setGenres(newFilm.getGenres());
         oldFilm.setRating(newFilm.getRating());
 

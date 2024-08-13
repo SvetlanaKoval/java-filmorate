@@ -25,4 +25,5 @@ public class MPAController {
     public Rating getById(@PathVariable Long id) {
         return ratingService.findById(id);
     }
+
 }

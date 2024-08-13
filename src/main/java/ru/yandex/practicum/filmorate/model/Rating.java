@@ -22,4 +22,5 @@ public class Rating {
 
     @NotNull
     private String name;
+
 }

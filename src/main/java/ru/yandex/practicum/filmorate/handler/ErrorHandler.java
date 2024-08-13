@@ -56,4 +56,5 @@ public class ErrorHandler {
         log.error(String.format("%s, reason - %s", e.getClass().getName(), e.getMessage()));
         return new ErrorResponse(e.getMessage());
     }
+
 }

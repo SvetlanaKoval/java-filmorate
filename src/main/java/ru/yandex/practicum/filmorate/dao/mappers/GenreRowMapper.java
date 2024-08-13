@@ -17,4 +17,5 @@ public class GenreRowMapper implements RowMapper<Genre> {
 
         return genre;
     }
+
 }

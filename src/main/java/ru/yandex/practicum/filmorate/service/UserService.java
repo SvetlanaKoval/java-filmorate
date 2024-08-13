@@ -3,12 +3,13 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.FilmLikesRepository;
+import ru.yandex.practicum.filmorate.dao.FriendsRepository;
 import ru.yandex.practicum.filmorate.dao.UserRepository;
 import ru.yandex.practicum.filmorate.dto.user.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UserDTO;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
@@ -23,15 +24,11 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final FriendsService friendsService;
-    private final FilmLikesService filmLikesService;
+    private final FriendsRepository friendsRepository;
+    private final FilmLikesRepository filmLikesRepository;
 
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
-            .peek(user -> {
-                user.setFriends(friendsService.getAllFriendsWithStatus(user.getId()));
-                user.setFavouriteFilmsId(filmLikesService.getAllByUserId(user.getId()));
-            })
             .map(UserMapper::toDTO)
             .collect(Collectors.toList());
     }
@@ -55,36 +52,30 @@ public class UserService {
     }
 
     public UserDTO updateUser(Long userId, UpdateUserRequest request) {
-        User updatedUser = userRepository.findById(userId)
-            .map(user -> UserMapper.updateUserFields(user, request))
-            .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        User updatedUser = userRepository.getById(userId);
+        UserMapper.updateUserFields(updatedUser, request);
         userRepository.update(updatedUser);
 
         return UserMapper.toDTO(updatedUser);
     }
 
     public boolean deleteUser(Long id) {
-        friendsService.deleteAllFriendsByUser(id);
-        friendsService.deleteAllUsersByFriend(id);
-        filmLikesService.deleteAllLikesByUser(id);
+        friendsRepository.deleteAllFriendsByUser(id);
+        friendsRepository.deleteAllUsersByFriend(id);
+        filmLikesRepository.deleteAllByUser(id);
         return userRepository.delete(id);
     }
 
     public UserDTO getUserById(Long id) {
-        UserDTO userDto = userRepository.findById(id)
-            .map(UserMapper::toDTO)
-            .orElseThrow(() -> new NotFoundException(String.format("Пользователь  с ID: %d не найден", id)));
-        userDto.setFriends(friendsService.getAllFriendsWithStatus(id));
-        userDto.setFavouriteFilmsId(filmLikesService.getAllByUserId(id));
-
-        return userDto;
+        return UserMapper.toDTO(userRepository.getById(id));
     }
 
     public List<User> getUsersByIds(Set<Long> ids) {
-        return ids.stream()
-            .map(userRepository::findById)
-            .map(Optional::orElseThrow)
-            .collect(Collectors.toList());
+        return userRepository.findAllByIds(ids);
+    }
+
+    public void checkUserExists(Long userId) {
+        userRepository.getById(userId);
     }
 
 }

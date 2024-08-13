@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@Qualifier("ratingRepository")
 public class RatingRepository extends BaseRepository<Rating> {
 
     private static final String TABLE_NAME_RATING = "rating";

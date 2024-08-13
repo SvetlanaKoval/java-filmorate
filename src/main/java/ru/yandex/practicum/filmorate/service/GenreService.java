@@ -9,6 +9,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class GenreService {
+
     private final GenreRepository genreRepository;
 
     public List<Genre> findAll() {
@@ -18,4 +19,5 @@ public class GenreService {
     public Genre findById(Long id) {
         return genreRepository.getById(id);
     }
+
 }

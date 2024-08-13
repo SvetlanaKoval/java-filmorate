@@ -6,12 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.enums.FriendsStatus;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 @Data
 public class User {
@@ -30,9 +25,5 @@ public class User {
 
     @PastOrPresent(message = "Your birthday should be in past")
     private LocalDate birthday;
-
-    private Map<Long, FriendsStatus> friends = new HashMap<>();
-
-    private Set<Long> favouriteFilmsId = new HashSet<>();
 
 }

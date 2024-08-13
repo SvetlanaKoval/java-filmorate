@@ -15,14 +15,6 @@ public class UserMapper {
         dto.setLogin(user.getLogin());
         dto.setBirthday(user.getBirthday());
 
-        if (!user.getFriends().isEmpty()) {
-            dto.setFriends(user.getFriends());
-        }
-
-        if (!user.getFavouriteFilmsId().isEmpty()) {
-            dto.setFavouriteFilmsId(user.getFavouriteFilmsId());
-        }
-
         return dto;
     }
 
@@ -51,14 +43,6 @@ public class UserMapper {
 
         if (request.hasBirthday()) {
             user.setBirthday(request.getBirthday());
-        }
-
-        if (request.hasFriends()) {
-            user.setFriends(request.getFriends());
-        }
-
-        if (request.hasFavouriteFilms()) {
-            user.setFavouriteFilmsId(request.getFavouriteFilmsId());
         }
 
         return user;

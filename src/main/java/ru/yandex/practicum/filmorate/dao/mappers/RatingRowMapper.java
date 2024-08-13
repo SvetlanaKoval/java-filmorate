@@ -17,4 +17,5 @@ public class RatingRowMapper implements RowMapper<Rating> {
 
         return rating;
     }
+
 }

@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -12,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 
 @Repository
-@Qualifier("userRepository")
 public class UserRepository extends BaseRepository<User> {
 
     private static final String TABLE_NAME_USERS = "users";
@@ -25,7 +23,7 @@ public class UserRepository extends BaseRepository<User> {
         return findMany(BaseQueries.getAll(TABLE_NAME_USERS));
     }
 
-    public Optional<User> findById(Long id) {
+    private Optional<User> findById(Long id) {
         return findOne(BaseQueries.getById(TABLE_NAME_USERS), id);
     }
 

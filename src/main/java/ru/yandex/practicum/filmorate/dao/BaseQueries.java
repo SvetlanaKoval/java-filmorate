@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.dao;
 import java.util.Collections;
 
 public class BaseQueries {
+
     public static String getAll(String tableName) {
         return String.format("SELECT * FROM %s", tableName);
     }

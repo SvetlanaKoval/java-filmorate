@@ -13,6 +13,7 @@ import java.util.Map;
 @Slf4j
 @Component
 public class InMemoryUserStorage implements UserStorage {
+
     protected final Map<Long, User> storage = new HashMap<>();
 
     @Override

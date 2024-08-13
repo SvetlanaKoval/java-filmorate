@@ -9,4 +9,5 @@ public class UserFriends {
     private Long userId;
     private Long friendId;
     private FriendsStatus status = FriendsStatus.UNCONFIRMED;
+
 }

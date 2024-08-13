@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.dto.user.UserDTO;
-import ru.yandex.practicum.filmorate.enums.FriendsStatus;
 import ru.yandex.practicum.filmorate.service.FriendsService;
 import java.util.List;
 
@@ -29,7 +28,7 @@ public class FriendsController {
 
     @PutMapping("/{friendId}")
     public Long addFriend(@PathVariable Long userId, @PathVariable Long friendId) {
-        //        log.info("Adding user with id - {} to friend with id - {}}", userId, friendId);
+        log.info("Adding friend with id - {} to user with id - {}", friendId, userId);
         return userService.addFriend(userId, friendId);
     }
 
@@ -43,12 +42,6 @@ public class FriendsController {
     public List<UserDTO> getCommonFriends(@PathVariable Long userId, @PathVariable Long otherId) {
         log.info("Getting common friends of users with id - {} and {}", userId, otherId);
         return userService.getCommonFriends(userId, otherId);
-    }
-
-    @PutMapping("/{friendId}/{status}")
-    public void updateFriendshipStatus(@PathVariable Long userId, @PathVariable Long friendId, @PathVariable FriendsStatus status) {
-        log.info("Updating friendship status of user with id - {} with friend with id - {}", userId, friendId);
-        userService.updateFriendshipStatus(userId, friendId, status);
     }
 
 }

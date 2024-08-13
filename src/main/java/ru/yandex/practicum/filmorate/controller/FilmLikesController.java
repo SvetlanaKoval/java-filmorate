@@ -26,15 +26,15 @@ public class FilmLikesController {
     }
 
     @PutMapping("/{userId}")
-    public Long addFilmLike(@PathVariable Long userId, @PathVariable Long id) {
-        log.info("Adding like to film with id - {} from user with id - {}", id, userId);
-        return filmLikesService.addFilmLike(userId, id);
+    public Long addFilmLike(@PathVariable("id") Long filmId, @PathVariable Long userId) {
+        log.info("Adding like to film with id - {} from user with id - {}", filmId, userId);
+        return filmLikesService.addFilmLike(userId, filmId);
     }
 
     @DeleteMapping("/{userId}")
-    public boolean deleteFilmLike(@PathVariable Long userId, @PathVariable Long id) {
-        log.info("Deleting like of film with id - {} from user with id - {}", id, userId);
-        return filmLikesService.deleteFilmLike(userId, id);
+    public boolean deleteFilmLike(@PathVariable("id") Long filmId, @PathVariable Long userId) {
+        log.info("Deleting like of film with id - {} from user with id - {}", filmId, userId);
+        return filmLikesService.deleteFilmLike(userId, filmId);
     }
 
 }

@@ -21,4 +21,5 @@ public class RatingService {
         return ratingRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Rating not found"));
     }
+
 }

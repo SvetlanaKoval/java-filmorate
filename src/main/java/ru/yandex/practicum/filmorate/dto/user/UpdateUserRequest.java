@@ -2,14 +2,12 @@ package ru.yandex.practicum.filmorate.dto.user;
 
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
-import ru.yandex.practicum.filmorate.enums.FriendsStatus;
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.Set;
 
 @Data
 public class UpdateUserRequest {
+
     private Long id;
 
     private String name;
@@ -19,8 +17,6 @@ public class UpdateUserRequest {
     private String login;
 
     private LocalDate birthday;
-
-    private Map<Long, FriendsStatus> friends;
 
     private Set<Long> favouriteFilmsId;
 
@@ -40,11 +36,4 @@ public class UpdateUserRequest {
         return birthday != null;
     }
 
-    public boolean hasFriends() {
-        return !CollectionUtils.isEmpty(friends);
-    }
-
-    public boolean hasFavouriteFilms() {
-        return !CollectionUtils.isEmpty(favouriteFilmsId);
-    }
 }

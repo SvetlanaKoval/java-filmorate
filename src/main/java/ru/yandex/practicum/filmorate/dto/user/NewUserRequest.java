@@ -8,6 +8,7 @@ import java.time.LocalDate;
 
 @Data
 public class NewUserRequest {
+
     private String name;
 
     @Email(message = "Email should be valid")
@@ -18,4 +19,5 @@ public class NewUserRequest {
 
     @PastOrPresent(message = "Your birthday should be in past")
     private LocalDate birthday;
+
 }

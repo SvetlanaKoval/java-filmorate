@@ -26,6 +26,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
+
     private final UserService userService;
     private final FilmLikesService filmLikesService;
 
@@ -37,7 +38,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UserDTO getUserById(@PathVariable Long id) {
-        log.info("Getting user wieh id - {}", id);
+        log.info("Getting user with id - {}", id);
         return userService.getUserById(id);
     }
 

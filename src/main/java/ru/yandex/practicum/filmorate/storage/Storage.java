@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class Storage<T> {
+
     protected long idGenerator = 0;
     protected final Map<Long, T> storage = new HashMap<>();
 
@@ -17,4 +18,5 @@ public abstract class Storage<T> {
     public abstract T delete(T t);
 
     public abstract T getById(Long id);
+
 }

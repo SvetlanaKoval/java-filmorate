@@ -21,8 +21,6 @@ public class UpdateFilmRequest {
 
     private MpaDTO mpa;
 
-    private List<Long> likes = List.of();
-
     private List<GenreDTO> genres = List.of();
 
     public boolean hasName() {
@@ -45,11 +43,8 @@ public class UpdateFilmRequest {
         return mpa != null;
     }
 
-    public boolean hasLikes() {
-        return !CollectionUtils.isEmpty(likes);
-    }
-
     public boolean hasGenres() {
         return !CollectionUtils.isEmpty(genres);
     }
+
 }

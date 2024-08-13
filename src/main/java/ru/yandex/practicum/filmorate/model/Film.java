@@ -11,7 +11,6 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Film.
@@ -35,8 +34,6 @@ public class Film {
     @Positive(message = "Film`s duration should be positive")
     private Integer duration;
 
-    private Set<Long> likes = Set.of();
-
     @NotEmpty(message = "Film should have at last one genre")
     private List<Genre> genres = List.of();
 
@@ -47,4 +44,5 @@ public class Film {
     private boolean isRightReleaseDate() {
         return this.releaseDate.isAfter(MIN_DATE_RELEASE);
     }
+
 }

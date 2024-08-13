@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.List;
+import java.util.Set;
 
 @Data
 public class NewFilmRequest {
@@ -29,7 +29,7 @@ public class NewFilmRequest {
 
     private MpaDTO mpa;
 
-    private List<GenreDTO> genres = List.of();
+    private Set<GenreDTO> genres = Set.of();
 
     @AssertTrue(message = "Release date should be after 28.12.1895")
     private boolean isRightReleaseDate() {

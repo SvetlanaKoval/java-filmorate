@@ -29,22 +29,6 @@ class UserRepositoryTest extends BaseIntegrationTest {
     }
 
     @Test
-    void testFindById_UserExists() {
-        Optional<User> userOptional = userRepository.findById(1L);
-
-        assertThat(userOptional)
-            .isPresent()
-            .hasValueSatisfying(user -> assertThat(user).hasFieldOrPropertyWithValue("id", 1L));
-    }
-
-    @Test
-    void testFindById_UserDoesNotExist() {
-        Optional<User> userOptional = userRepository.findById(999L);
-
-        assertThat(userOptional).isNotPresent();
-    }
-
-    @Test
     void testGetById_UserExists() {
         User user = userRepository.getById(1L);
 

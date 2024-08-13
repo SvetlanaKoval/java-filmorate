@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -9,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.UserFriends;
 import java.util.List;
 
 @Repository
-@Qualifier("userRepository")
 public class FriendsRepository extends BaseRepository<UserFriends> {
 
     private static final String TABLE_NAME_FRIENDS = "user_friends";
