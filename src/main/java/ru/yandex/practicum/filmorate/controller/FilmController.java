@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dto.film.FilmDTO;
+import ru.yandex.practicum.filmorate.dto.film.NewFilmRequest;
+import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import java.util.Collection;
 import java.util.List;
 
 @Slf4j
@@ -22,47 +23,43 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/films")
 public class FilmController {
+
     private final FilmService filmService;
 
     @GetMapping
-    public Collection<Film> getFilms() {
+    public List<FilmDTO> getAllFilms() {
         log.info("Getting all films");
-        return filmService.getFilms();
+        return filmService.getAllFilms();
+    }
+
+    @GetMapping("/{id}")
+    public FilmDTO getById(@PathVariable Long id) {
+        log.info("Getting film by id {}", id);
+        return filmService.getById(id);
     }
 
     @PostMapping
-    public Film createFilm(@Valid @RequestBody Film film) {
-        log.info("Posting new film - {}", film.getName());
-        return filmService.createFilm(film);
+    public FilmDTO createFilm(@Valid @RequestBody NewFilmRequest request) {
+        log.info("Posting new film - {}", request.getName());
+        return filmService.createFilm(request);
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film newFilm) {
-        log.info("Updating film - {}", newFilm.getName());
-        return filmService.updateFilm(newFilm);
+    public FilmDTO updateFilm(@Valid @RequestBody UpdateFilmRequest request) {
+        log.info("Updating film - {}", request.getName());
+        return filmService.updateFilm(request);
     }
 
-    @DeleteMapping
-    public Film deleteFilm(@Valid @RequestBody Film deletedFilm) {
-        log.info("Deleting film - {}", deletedFilm.getName());
-        return filmService.deleteFilm(deletedFilm);
-    }
-
-    @PutMapping("{id}/like/{userId}")
-    public Film addLike(@PathVariable Long id, @PathVariable Long userId) {
-        log.info("Adding new like to film with id - {} from user with id - {}", id, userId);
-        return filmService.addLike(id, userId);
-    }
-
-    @DeleteMapping("{id}/like/{userId}")
-    public Film removeLike(@PathVariable Long id, @PathVariable Long userId) {
-        log.info("Deleting like from film with id - {} from user with id - {}", id, userId);
-        return filmService.removeLike(id, userId);
+    @DeleteMapping("/{id}")
+    public boolean deleteFilm(@PathVariable Long id) {
+        log.info("Deleting film with id - {}", id);
+        return filmService.deleteFilm(id);
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
+    public List<FilmDTO> getPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
         log.info("Getting {} most popular films", count);
         return filmService.getPopularFilms(count);
     }
+
 }

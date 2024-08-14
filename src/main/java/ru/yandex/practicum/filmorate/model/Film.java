@@ -2,15 +2,15 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 /**
  * Film.
@@ -19,8 +19,6 @@ import java.util.Set;
 public class Film {
 
     private static final LocalDate MIN_DATE_RELEASE = LocalDate.of(1895, Month.DECEMBER, 28);
-
-    private static long idCounter = 0;
 
     private Long id;
 
@@ -31,13 +29,16 @@ public class Film {
     private String description;
 
     @PastOrPresent(message = "Film release should be in past")
-    @DateTimeFormat(pattern = "dd.MM.yyyy")
     private LocalDate releaseDate;
 
     @Positive(message = "Film`s duration should be positive")
     private Integer duration;
 
-    private Set<Long> likes = new HashSet<>();
+    @NotEmpty(message = "Film should have at last one genre")
+    private List<Genre> genres = List.of();
+
+    @NotNull(message = "Film should have Motion Picture Association rating")
+    private Rating rating;
 
     @AssertTrue(message = "Release date should be after 28.12.1895")
     private boolean isRightReleaseDate() {

@@ -6,10 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
 public class User {
@@ -27,11 +24,6 @@ public class User {
     private String name;
 
     @PastOrPresent(message = "Your birthday should be in past")
-    @DateTimeFormat(pattern = "dd.MM.yyyy")
     private LocalDate birthday;
-
-    private Set<Long> friends = new HashSet<>();
-
-    private Set<Long> favouriteFilmsId = new HashSet<>();
 
 }

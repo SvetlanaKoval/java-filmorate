@@ -6,12 +6,15 @@ import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.Storage;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Component
-public class InMemoryUserStorage extends Storage<User> {
+public class InMemoryUserStorage implements UserStorage {
+
+    protected final Map<Long, User> storage = new HashMap<>();
 
     @Override
     public Collection<User> getAll() {
@@ -29,7 +32,7 @@ public class InMemoryUserStorage extends Storage<User> {
         userNameValidation(user);
         //Checking email, if email of user is already exists
         userEmailValidation(user.getEmail());
-        user.setId(++idGenerator);
+        user.setId(generateMaxId() + 1);
         storage.put(user.getId(), user);
 
         log.info("The new user {} has been added", user.getName());
@@ -104,4 +107,11 @@ public class InMemoryUserStorage extends Storage<User> {
                 throw new DuplicatedDataException("User with email " + email + " is already exists");
             });
     }
+
+    private Long generateMaxId() {
+        return (storage.keySet().stream()
+            .max(Long::compare)
+            .orElse(0L));
+    }
+
 }
